@@ -3,7 +3,7 @@ name = "npkl"
 version = "1.0.0"
 edition = "2021"
 description = "Like npkill, but written in Rust."
-authors="Val Saven <val.saven@gmail.com>"
+authors=["Val Saven <val.saven@gmail.com>"]
 license = "MIT"
 repository = "https://github.com/valsaven/npkl"
 
