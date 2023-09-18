@@ -61,7 +61,7 @@ fn main() -> std::io::Result<()> {
 
                 fs::remove_dir_all(selected_item_path)?;
             }
-        },
+        }
         None => println!("User exited using Esc or q"),
     }
 

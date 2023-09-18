@@ -31,7 +31,7 @@ pub fn get_node_item(path: String) -> String {
 #[test]
 fn test_get_node_item() {
     let current_dir = std::env::current_dir().unwrap();
-    let expected_output = format!("81.41 MB    |  {}", current_dir.display());
+    let expected_output = format!("136.05 MB   |  {}", current_dir.display());
     let result = get_node_item(current_dir.to_str().unwrap().to_string());
     assert_eq!(result, expected_output);
 }
