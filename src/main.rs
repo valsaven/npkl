@@ -48,10 +48,17 @@ fn main() -> std::io::Result<()> {
     // println!("Total size:");
     // println!("{}\n", total_size);
 
-    let selection = MultiSelect::with_theme(&ColorfulTheme::default())
+    let selection_result = MultiSelect::with_theme(&ColorfulTheme::default())
         .with_prompt("Select with CURSORS and SPACE. Press ENTER to delete")
         .items(&node_items)
-        .interact_on_opt(&Term::stderr())?;
+        .interact_on_opt(&Term::stderr());
+
+    let selection = match selection_result {
+        Ok(val) => val,
+        Err(dialoguer_error) => {
+            return Err(std::io::Error::new(std::io::ErrorKind::Other, dialoguer_error.to_string()));
+        }
+    };
 
     match selection {
         Some(positions) => {
