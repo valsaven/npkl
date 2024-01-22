@@ -1,29 +1,22 @@
 use crate::libs::get_path_size::get_path_size;
 
-pub fn get_node_item(path: String) -> String {
+pub fn get_node_item(path: &str) -> String {
     let delimiter = "|  ";
-    let size = get_path_size(&*path);
-    let mut spaces_after_size = 4;
+    let size = get_path_size(path);
+    let size_length = size.len();
 
-    match size.len() {
-        4 => spaces_after_size = 8,
-        5 => spaces_after_size = 7,
-        6 => spaces_after_size = 6,
-        7 => spaces_after_size = 5,
-        8 => spaces_after_size = 4,
-        9 => spaces_after_size = 3,
-        10 => spaces_after_size = 2,
-        11 => spaces_after_size = 1,
-        _ => println!("Wrong size."),
-    }
+    // Set the maximum expected length of the size string
+    let max_size_length = 11;
+    // Calculate the number of spaces based on the length of the string with size
+    let spaces_after_size = std::cmp::max(0, max_size_length - size_length);
 
-    let node_item = [
+    let node_item = format!(
+        "{}{}{}{}",
         size,
         " ".repeat(spaces_after_size),
-        delimiter.to_string(),
-        path.to_string(),
-    ]
-    .join("");
+        delimiter,
+        path
+    );
 
-    return node_item;
+    node_item
 }

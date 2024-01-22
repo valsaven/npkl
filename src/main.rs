@@ -5,71 +5,68 @@ use crate::libs::get_selected_item_path::get_selected_item_path;
 use crate::libs::is_top_level_node_modules::is_top_level_node_modules;
 use libs::print_logo::print_logo;
 use std::fs;
-
+use std::path::PathBuf;
 use dialoguer::{console::Term, theme::ColorfulTheme, MultiSelect};
-use walkdir::WalkDir;
+use walkdir::{WalkDir};
 
 fn main() -> std::io::Result<()> {
     print_logo();
 
-    let path = ".";
+    let path = PathBuf::from(".");
     let mut node_items = vec![];
+    let mut in_node_modules = false; // Flag to track if we are inside node_modules
 
-    let mut it = WalkDir::new(path).into_iter();
-    loop {
-        let entry = match it.next() {
-            None => break,
-            Some(Err(err)) => panic!("ERROR: {}", err),
-            Some(Ok(entry)) => entry,
+    for entry in WalkDir::new(&path).min_depth(1).into_iter() {
+        let entry = match entry {
+            Ok(entry) => entry,
+            Err(err) => {
+                eprintln!("ERROR: {}", err);
+                continue;
+            }
         };
 
-        if !entry.file_type().is_dir() {
+        let depth = entry.depth(); // Get the depth of the current directory
+
+        if depth == 1 {
+            in_node_modules = false; // Reset the flag if we are back to a higher level
+        }
+
+        if !entry.file_type().is_dir() || in_node_modules {
             continue;
         }
 
         if is_top_level_node_modules(&entry) {
-            if entry.file_type().is_dir() {
-                let current_path = entry.path().to_str().unwrap().parse().unwrap();
-                let node_item = get_node_item(current_path);
+            let current_path = entry.path().to_str().ok_or_else(|| {
+                std::io::Error::new(std::io::ErrorKind::InvalidData, "Invalid path")
+            })?;
+            let node_item = get_node_item(current_path);
+            node_items.push(node_item);
 
-                node_items.push(node_item);
-
-                // We don't need nested node_modules, so we skip them
-                it.skip_current_dir();
-            }
-            continue;
+            in_node_modules = true; // Set the flag that we are inside node_modules
         }
     }
 
     println!("Total elements:");
     println!("{}\n", node_items.len());
 
-    // TODO: Show total size
-    // println!("Total size:");
-    // println!("{}\n", total_size);
-
     let selection_result = MultiSelect::with_theme(&ColorfulTheme::default())
         .with_prompt("Select with CURSORS and SPACE. Press ENTER to delete")
         .items(&node_items)
         .interact_on_opt(&Term::stderr());
 
-    let selection = match selection_result {
-        Ok(val) => val,
-        Err(dialoguer_error) => {
-            return Err(std::io::Error::new(std::io::ErrorKind::Other, dialoguer_error.to_string()));
-        }
-    };
-
-    match selection {
-        Some(positions) => {
-            for index in &positions {
-                let selected_item = &node_items[*index];
+    match selection_result {
+        Ok(Some(positions)) => {
+            for index in positions {
+                let selected_item = &node_items[index];
                 let selected_item_path = get_selected_item_path(selected_item);
-
                 fs::remove_dir_all(selected_item_path)?;
             }
         },
-        None => println!("User exited using Esc or q"),
+        Ok(None) => println!("User exited using Esc or q"),
+        Err(dialoguer_error) => {
+            eprintln!("Dialoguer error: {}", dialoguer_error);
+            return Err(std::io::Error::new(std::io::ErrorKind::Other, dialoguer_error.to_string()));
+        }
     }
 
     Ok(())

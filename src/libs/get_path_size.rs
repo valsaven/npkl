@@ -1,4 +1,4 @@
-use byte_unit::Byte;
+use byte_unit::{Byte, UnitType};
 use walkdir::WalkDir;
 
 pub fn get_path_size(path: &str) -> String {
@@ -10,8 +10,8 @@ pub fn get_path_size(path: &str) -> String {
         .filter(|metadata| metadata.is_file())
         .fold(0, |acc, m| acc + m.len());
 
-    let byte = Byte::from_bytes(total_size.into());
-    let adjusted_byte = byte.get_appropriate_unit(false);
+    let byte = Byte::from_u64(total_size);
+    let adjusted_byte = byte.get_appropriate_unit(UnitType::Binary);
 
-    return adjusted_byte.to_string();
+    format!("{:.2}", adjusted_byte)
 }
