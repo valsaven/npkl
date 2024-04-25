@@ -1,4 +1,5 @@
-const LOGO: &str = r"
+pub fn print_logo() {
+    println!(r"
               _    _
              | |  | |
   _ __  _ __ | | _| |
@@ -7,8 +8,5 @@ const LOGO: &str = r"
  |_| |_| .__/|_|\_\_|
        | |
        |_|
-";
-
-pub fn print_logo() {
-    println!("{}", LOGO);
+    ");
 }
