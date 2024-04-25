@@ -12,7 +12,16 @@ use walkdir::{WalkDir};
 fn main() -> std::io::Result<()> {
     print_logo();
 
-    let path = PathBuf::from(".");
+    let node_items = get_node_items(PathBuf::from("."))?;
+    print_total_elements(&node_items);
+
+    let selected_positions = get_user_selection(&node_items)?;
+    delete_selected_items(&node_items, selected_positions)?;
+
+    Ok(())
+}
+
+fn get_node_items(path: PathBuf) -> std::io::Result<Vec<String>> {
     let mut node_items = vec![];
     let mut in_node_modules = false; // Flag to track if we are inside node_modules
 
@@ -46,27 +55,38 @@ fn main() -> std::io::Result<()> {
         }
     }
 
-    println!("Total elements:");
-    println!("{}\n", node_items.len());
+    Ok(node_items)
+}
 
+fn get_user_selection(node_items: &[String]) -> std::io::Result<Vec<usize>> {
     let selection_result = MultiSelect::with_theme(&ColorfulTheme::default())
         .with_prompt("Select with CURSORS and SPACE. Press ENTER to delete")
-        .items(&node_items)
+        .items(node_items)
         .interact_on_opt(&Term::stderr());
 
     match selection_result {
-        Ok(Some(positions)) => {
-            for index in positions {
-                let selected_item = &node_items[index];
-                let selected_item_path = get_selected_item_path(selected_item);
-                fs::remove_dir_all(selected_item_path)?;
-            }
+        Ok(Some(positions)) => Ok(positions),
+        Ok(None) => {
+            println!("User exited using Esc or q");
+            Ok(vec![])
         },
-        Ok(None) => println!("User exited using Esc or q"),
         Err(dialoguer_error) => {
             eprintln!("Dialoguer error: {}", dialoguer_error);
-            return Err(std::io::Error::new(std::io::ErrorKind::Other, dialoguer_error.to_string()));
+            Err(std::io::Error::new(std::io::ErrorKind::Other, dialoguer_error.to_string()))
         }
+    }
+}
+
+fn print_total_elements(node_items: &[String]) {
+    println!("Total elements:");
+    println!("{}\n", node_items.len());
+}
+
+fn delete_selected_items(node_items: &[String], selected_positions: Vec<usize>) -> std::io::Result<()> {
+    for index in selected_positions {
+        let selected_item = &node_items[index];
+        let selected_item_path = get_selected_item_path(selected_item);
+        fs::remove_dir_all(selected_item_path)?;
     }
 
     Ok(())
