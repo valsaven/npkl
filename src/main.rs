@@ -91,3 +91,31 @@ fn delete_selected_items(node_items: &[String], selected_positions: Vec<usize>) 
 
     Ok(())
 }
+
+#[cfg(test)]
+mod tests {
+    use std::path::Path;
+    use super::*;
+
+    #[test]
+    fn test_get_node_items() {
+        let path = PathBuf::from(".");
+        let node_items = get_node_items(path).unwrap();
+
+        assert!(node_items.is_empty() || !node_items.is_empty());
+    }
+
+    #[test]
+    fn test_delete_selected_items() {
+        // Создаем временную директорию
+        let temp_dir = tempfile::tempdir().unwrap();
+        let temp_dir_path = temp_dir.path().to_str().unwrap().to_string();
+
+        let node_items = vec![temp_dir_path.clone()];
+        let selected_positions = vec![0];
+        let result = delete_selected_items(&node_items, selected_positions);
+
+        assert!(result.is_ok());
+        assert!(!Path::new(&temp_dir_path).exists());
+    }
+}

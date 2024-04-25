@@ -272,6 +272,7 @@ dependencies = [
  "byte-unit",
  "dialoguer",
  "itertools",
+ "tempfile",
  "walkdir",
 ]
 
