@@ -50,14 +50,18 @@ fn main() -> std::io::Result<()> {
     println!("{}\n", node_items.len());
 
     let selection_result = MultiSelect::with_theme(&ColorfulTheme::default())
-        .with_prompt("Select with CURSORS and SPACE. Press ENTER to delete")
+        .with_prompt("Select with CURSORS and SPACE. Press ENTER to delete\n")
         .items(&node_items)
+        .report(false)
+        .clear(true)
         .interact_on_opt(&Term::stderr());
 
     match selection_result {
         Ok(Some(positions)) => {
-            for index in positions {
-                let selected_item = &node_items[index];
+            println!("Selected items:");
+            for index in &positions {
+                let selected_item = &node_items[*index];
+                println!("{}", selected_item);
                 let selected_item_path = get_selected_item_path(selected_item);
                 fs::remove_dir_all(selected_item_path)?;
             }
