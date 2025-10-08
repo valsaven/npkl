@@ -3,19 +3,17 @@ use crate::libs::get_path_size::get_path_size;
 pub fn get_node_item(path: &str) -> String {
     let delimiter = "|  ";
     let size = get_path_size(path);
-    let size_length = size.len();
 
-    // Set the maximum expected length of the size string
-    let max_size_length = 11;
-    // Calculate the number of spaces based on the length of the string with size
-    let spaces_after_size = std::cmp::max(0, max_size_length - size_length);
+    // Fixed width for size (right-aligned: spaces on the left)
+    let max_size_width = 11; // Enough for "1024.00 GiB" or similar
 
+    // Format the string: size is right-aligned, then delimiter and path
     let node_item = format!(
-        "{}{}{}{}",
+        "{:>width$}{}{}", // > for right-align, width$ takes max_size_width
         size,
-        " ".repeat(spaces_after_size),
         delimiter,
-        path
+        path,
+        width = max_size_width // Set width dynamically
     );
 
     node_item
