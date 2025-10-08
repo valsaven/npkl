@@ -2,7 +2,6 @@ mod libs;
 
 use crate::libs::get_node_item::get_node_item;
 use crate::libs::get_selected_item_path::get_selected_item_path;
-use crate::libs::is_top_level_node_modules::is_top_level_node_modules;
 use libs::print_logo::print_logo;
 use std::fs;
 use std::path::PathBuf;
@@ -35,7 +34,7 @@ fn main() -> std::io::Result<()> {
             continue;
         }
 
-        if is_top_level_node_modules(&entry) {
+        if entry.file_name().to_str() == Some("node_modules") {
             let current_path = entry.path().to_str().ok_or_else(|| {
                 std::io::Error::new(std::io::ErrorKind::InvalidData, "Invalid path")
             })?;
