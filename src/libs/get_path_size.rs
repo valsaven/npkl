@@ -1,14 +1,16 @@
 use byte_unit::{Byte, UnitType};
+use rayon::prelude::*;
 use walkdir::WalkDir;
 
 pub fn get_path_size(path: &str) -> String {
-    let total_size = WalkDir::new(path)
-        .min_depth(1)
+    let total_size: u64 = WalkDir::new(path)
         .into_iter()
-        .filter_map(|entry| entry.ok())
-        .filter_map(|entry| entry.metadata().ok())
-        .filter(|metadata| metadata.is_file())
-        .fold(0, |acc, m| acc + m.len());
+        .filter_map(|e| e.ok())
+        .par_bridge()
+        .filter(|e| e.file_type().is_file())
+        .filter_map(|e| e.metadata().ok())
+        .map(|m| m.len())
+        .sum::<u64>();
 
     let byte = Byte::from_u64(total_size);
     let adjusted_byte = byte.get_appropriate_unit(UnitType::Binary);

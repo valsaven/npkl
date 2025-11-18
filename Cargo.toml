@@ -1,7 +1,7 @@
 [package]
 name = "npkl"
-version = "1.0.3"
-edition = "2021"
+version = "1.0.4"
+edition = "2024"
 description = "Like npkill, but written in Rust."
 authors=["Val Saven <val.saven@gmail.com>"]
 license = "MIT"
@@ -14,3 +14,4 @@ itertools = "0.14.0"
 byte-unit = "5.1.6"
 dialoguer = "0.12.0"
 walkdir = "2.5.0"
+rayon = "1.11.0"
