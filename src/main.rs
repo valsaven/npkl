@@ -1,12 +1,11 @@
 mod libs;
 
-use crate::libs::get_node_item::get_node_item;
-use crate::libs::get_selected_item_path::get_selected_item_path;
+use crate::libs::{get_node_item::get_node_item, get_selected_item_path::get_selected_item_path};
+use dialoguer::{MultiSelect, console::Term, theme::ColorfulTheme};
 use libs::print_logo::print_logo;
 use std::fs;
 use std::path::PathBuf;
-use dialoguer::{console::Term, theme::ColorfulTheme, MultiSelect};
-use walkdir::{WalkDir};
+use walkdir::WalkDir;
 
 fn main() -> std::io::Result<()> {
     print_logo();
@@ -64,11 +63,14 @@ fn main() -> std::io::Result<()> {
                 let selected_item_path = get_selected_item_path(selected_item);
                 fs::remove_dir_all(selected_item_path)?;
             }
-        },
+        }
         Ok(None) => println!("User exited using Esc or q"),
         Err(dialoguer_error) => {
             eprintln!("Dialoguer error: {}", dialoguer_error);
-            return Err(std::io::Error::new(std::io::ErrorKind::Other, dialoguer_error.to_string()));
+            return Err(std::io::Error::new(
+                std::io::ErrorKind::Other,
+                dialoguer_error.to_string(),
+            ));
         }
     }
 
