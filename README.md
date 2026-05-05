@@ -12,7 +12,7 @@ This utility recursively searches for node_modules directories from the point it
 
 ## Building
 
-To build it from source you need Rust 1.73 or later, preferably via rustup.
+To build it from source you need Rust 1.95 or later, preferably via rustup.
 
 ### Global Installation
 
