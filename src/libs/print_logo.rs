@@ -10,5 +10,5 @@ const LOGO: &str = r"
 ";
 
 pub fn print_logo() {
-    println!("{}", LOGO);
+    println!("{LOGO}");
 }
