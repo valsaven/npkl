@@ -1,7 +1,7 @@
 mod libs;
 
 use crate::libs::{get_node_item::get_node_item, get_selected_item_path::get_selected_item_path};
-use dialoguer::{MultiSelect, console::Term, theme::ColorfulTheme};
+use dialoguer::{console::Term, theme::ColorfulTheme, MultiSelect};
 use libs::print_logo::print_logo;
 use std::fs;
 use std::path::PathBuf;
@@ -34,14 +34,16 @@ fn main() -> std::io::Result<()> {
         }
 
         if entry.file_name().to_str() == Some("node_modules") {
-            let current_path = entry.path().to_str().ok_or_else(|| {
-                std::io::Error::new(std::io::ErrorKind::InvalidData, "Invalid path")
-            })?;
-            let node_item = get_node_item(current_path);
+            let node_item = get_node_item(entry.path());
             node_items.push(node_item);
 
             in_node_modules = true; // Set the flag that we are inside node_modules
         }
+    }
+
+    if node_items.is_empty() {
+        println!("No node_modules found.");
+        return Ok(());
     }
 
     println!("Total elements:");
@@ -59,18 +61,23 @@ fn main() -> std::io::Result<()> {
             println!("Selected items:");
             for index in &positions {
                 let selected_item = &node_items[*index];
-                println!("{}", selected_item);
-                let selected_item_path = get_selected_item_path(selected_item);
+                println!("{selected_item}");
+
+                let selected_item_path =
+                    get_selected_item_path(selected_item).ok_or_else(|| {
+                        std::io::Error::new(
+                            std::io::ErrorKind::InvalidData,
+                            format!("Could not extract path from item: {selected_item}"),
+                        )
+                    })?;
+
                 fs::remove_dir_all(selected_item_path)?;
             }
         }
         Ok(None) => println!("User exited using Esc or q"),
         Err(dialoguer_error) => {
-            eprintln!("Dialoguer error: {}", dialoguer_error);
-            return Err(std::io::Error::new(
-                std::io::ErrorKind::Other,
-                dialoguer_error.to_string(),
-            ));
+            eprintln!("Dialoguer error: {dialoguer_error}");
+            return Err(std::io::Error::other(dialoguer_error.to_string()));
         }
     }
 
