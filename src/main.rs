@@ -1,7 +1,8 @@
 mod libs;
 
-use crate::libs::{get_node_item::get_node_item, get_selected_item_path::get_selected_item_path};
+use crate::libs::node_item::NodeItem;
 use dialoguer::{console::Term, theme::ColorfulTheme, MultiSelect};
+use indicatif::{ProgressBar, ProgressStyle};
 use libs::print_logo::print_logo;
 use std::fs;
 use std::path::PathBuf;
@@ -11,40 +12,50 @@ fn main() -> std::io::Result<()> {
     print_logo();
 
     let path = PathBuf::from(".");
-    let mut node_items = vec![];
-    let mut in_node_modules = false; // Flag to track if we are inside node_modules
 
-    for entry in WalkDir::new(&path).min_depth(1).into_iter() {
-        let entry = match entry {
-            Ok(entry) => entry,
-            Err(err) => {
-                eprintln!("ERROR: {}", err);
+    // Fast scan: find all node_modules without calculating sizes
+    let mut paths = vec![];
+    let mut walk_iter = WalkDir::new(&path).min_depth(1).into_iter();
+    loop {
+        let entry = match walk_iter.next() {
+            None => break,
+            Some(Err(err)) => {
+                eprintln!("ERROR: {err}");
                 continue;
             }
+            Some(Ok(entry)) => entry,
         };
 
-        let depth = entry.depth(); // Get the depth of the current directory
-
-        if depth == 1 {
-            in_node_modules = false; // Reset the flag if we are back to a higher level
-        }
-
-        if !entry.file_type().is_dir() || in_node_modules {
+        if !entry.file_type().is_dir() {
             continue;
         }
 
-        if entry.file_name().to_str() == Some("node_modules") {
-            let node_item = get_node_item(entry.path());
-            node_items.push(node_item);
-
-            in_node_modules = true; // Set the flag that we are inside node_modules
+        if entry.file_name() == "node_modules" {
+            paths.push(entry.path().to_path_buf());
+            walk_iter.skip_current_dir();
         }
     }
 
-    if node_items.is_empty() {
+    if paths.is_empty() {
         println!("No node_modules found.");
         return Ok(());
     }
+
+    // Calculate sizes with a progress bar
+    let pb = ProgressBar::new(paths.len() as u64);
+    pb.set_style(
+        ProgressStyle::with_template("{spinner:.green} [{bar:40.cyan/blue}] {pos}/{len} {msg}")
+            .unwrap()
+            .progress_chars("#>-"),
+    );
+
+    let mut node_items = vec![];
+    for path in &paths {
+        pb.set_message(path.display().to_string());
+        node_items.push(NodeItem::from_path(path));
+        pb.inc(1);
+    }
+    pb.finish_and_clear();
 
     println!("Total elements:");
     println!("{}\n", node_items.len());
@@ -62,16 +73,7 @@ fn main() -> std::io::Result<()> {
             for index in &positions {
                 let selected_item = &node_items[*index];
                 println!("{selected_item}");
-
-                let selected_item_path =
-                    get_selected_item_path(selected_item).ok_or_else(|| {
-                        std::io::Error::new(
-                            std::io::ErrorKind::InvalidData,
-                            format!("Could not extract path from item: {selected_item}"),
-                        )
-                    })?;
-
-                fs::remove_dir_all(selected_item_path)?;
+                fs::remove_dir_all(&selected_item.path)?;
             }
         }
         Ok(None) => println!("User exited using Esc or q"),
