@@ -1,6 +1,6 @@
 [package]
 name = "npkl"
-version = "1.0.7"
+version = "1.0.8"
 edition = "2024"
 description = "Like npkill, but written in Rust."
 authors = ["Val Saven <val.saven@gmail.com>"]
@@ -12,5 +12,5 @@ repository = "https://github.com/valsaven/npkl"
 [dependencies]
 byte-unit = "5.2.0"
 dialoguer = "0.12.0"
+indicatif = "0.17"
 walkdir = "2.5.0"
-rayon = "1.12.0"
