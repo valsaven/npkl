@@ -11,12 +11,32 @@ use walkdir::WalkDir;
 fn main() -> std::io::Result<()> {
     print_logo();
 
+    let mut path: Option<PathBuf> = None;
+    let mut sort_by_size = true;
     let mut args = std::env::args().skip(1);
-    let path = args.next().map(PathBuf::from).unwrap_or_else(|| PathBuf::from("."));
-    if args.next().is_some() {
-        eprintln!("Usage: npkl [path]");
-        std::process::exit(2);
+    while let Some(arg) = args.next() {
+        if arg == "--sort" || arg.starts_with("--sort=") {
+            let value = arg
+                .strip_prefix("--sort=")
+                .map(str::to_owned)
+                .or_else(|| args.next())
+                .unwrap_or_default();
+            sort_by_size = match value.as_str() {
+                "size" => true,
+                "path" => false,
+                _ => {
+                    eprintln!("ERROR: --sort expects 'size' or 'path'");
+                    std::process::exit(2);
+                }
+            };
+        } else if arg.starts_with('-') || path.is_some() {
+            eprintln!("Usage: npkl [path] [--sort size|path]");
+            std::process::exit(2);
+        } else {
+            path = Some(PathBuf::from(arg));
+        }
     }
+    let path = path.unwrap_or_else(|| PathBuf::from("."));
     if !path.is_dir() {
         eprintln!("ERROR: '{}' is not a directory", path.display());
         std::process::exit(2);
@@ -60,9 +80,14 @@ fn main() -> std::io::Result<()> {
         pb.inc(1);
     }
     pb.finish_and_clear();
-    node_items.sort_by_key(|item| std::cmp::Reverse(item.size));
 
     println!("Total elements:\n{}\n", node_items.len());
+
+    if sort_by_size {
+        node_items.sort_by_key(|item| std::cmp::Reverse(item.size));
+    } else {
+        node_items.sort_by_key(|item| item.path.clone());
+    }
 
     let selection_result = MultiSelect::with_theme(&ColorfulTheme::default())
         .with_prompt("Select with CURSORS and SPACE. Press ENTER to delete\n")

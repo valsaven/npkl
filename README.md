@@ -10,6 +10,16 @@ This utility recursively searches for node_modules directories from the point it
 - Review the path and size of each found directory.
 - Selectively delete unwanted node_modules directories with a simple interface.
 
+## Usage
+
+```bash
+npkl [path] [--sort size|path]
+```
+
+Without arguments scans the current directory, with a path scans that directory instead. `--sort` controls the list order: `size` (largest first, default) or `path` (A-Z).
+
+Move with CURSORS, toggle entries with SPACE and press ENTER to delete the selected ones. Esc quits without deleting anything.
+
 ## Building
 
 To build it from source you need Rust 1.95 or later, preferably via rustup.
