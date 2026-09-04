@@ -27,7 +27,9 @@ Clone this repo and then:
 
 ```bash
 cargo build --release
-# Optionally, you can compress the executable file (Windows example, reduces the file size from ~338KB to ~123KB):
+# The release profile already enables `strip`, `lto` and `codegen-units = 1`,
+# so the binary is small out of the box. Optionally, you can compress it
+# further (Windows example, reduces the file size from ~396KB to ~148KB):
 upx --best --lzma target/release/npkl
 ```
 
