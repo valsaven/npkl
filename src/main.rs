@@ -14,23 +14,18 @@ fn main() -> std::io::Result<()> {
     let path = PathBuf::from(".");
 
     // Fast scan: find all node_modules without calculating sizes
-    let mut paths = vec![];
+    let mut paths: Vec<PathBuf> = Vec::new();
     let mut walk_iter = WalkDir::new(&path).min_depth(1).into_iter();
-    loop {
-        let entry = match walk_iter.next() {
-            None => break,
-            Some(Err(err)) => {
+    while let Some(entry) = walk_iter.next() {
+        let entry = match entry {
+            Ok(entry) => entry,
+            Err(err) => {
                 eprintln!("ERROR: {err}");
                 continue;
             }
-            Some(Ok(entry)) => entry,
         };
 
-        if !entry.file_type().is_dir() {
-            continue;
-        }
-
-        if entry.file_name() == "node_modules" {
+        if entry.file_type().is_dir() && entry.file_name() == "node_modules" {
             paths.push(entry.path().to_path_buf());
             walk_iter.skip_current_dir();
         }
