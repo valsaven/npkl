@@ -11,7 +11,16 @@ use walkdir::WalkDir;
 fn main() -> std::io::Result<()> {
     print_logo();
 
-    let path = PathBuf::from(".");
+    let mut args = std::env::args().skip(1);
+    let path = args.next().map(PathBuf::from).unwrap_or_else(|| PathBuf::from("."));
+    if args.next().is_some() {
+        eprintln!("Usage: npkl [path]");
+        std::process::exit(2);
+    }
+    if !path.is_dir() {
+        eprintln!("ERROR: '{}' is not a directory", path.display());
+        std::process::exit(2);
+    }
 
     // Fast scan: find all node_modules without calculating sizes
     let mut paths: Vec<PathBuf> = Vec::new();
