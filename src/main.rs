@@ -51,9 +51,9 @@ fn main() -> std::io::Result<()> {
         pb.inc(1);
     }
     pb.finish_and_clear();
+    node_items.sort_by_key(|item| std::cmp::Reverse(item.size));
 
-    println!("Total elements:");
-    println!("{}\n", node_items.len());
+    println!("Total elements:\n{}\n", node_items.len());
 
     let selection_result = MultiSelect::with_theme(&ColorfulTheme::default())
         .with_prompt("Select with CURSORS and SPACE. Press ENTER to delete\n")
